@@ -41,17 +41,22 @@
   .sticker.pink::before{background:var(--pink);box-shadow:0 4px 12px rgba(192,48,111,.22)}
 
   /* ---------- slider ---------- */
-  .slider{position:relative;height:150px;margin:56px 6px 10px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;outline:none}
-  .rail{position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:6px;background:var(--track)}
-  .black{position:absolute;left:0;top:50%;height:6px;margin-top:-3px;border-radius:6px;background:var(--ink)}
-  .taper{position:absolute;top:50%;height:12px;margin-top:-6px;
+  .slider{position:relative;height:120px;margin:56px 14px 0;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;outline:none}
+  .rail,.black{position:absolute;top:84px;height:6px;margin-top:-3px;border-radius:6px}
+  .rail{left:0;right:0;background:var(--track)}
+  .black{left:0;background:var(--ink)}
+  .taper{position:absolute;top:84px;height:12px;margin-top:-6px;
     background:linear-gradient(90deg,var(--pink-lt),var(--pink));
     clip-path:polygon(0 40%,100% 0,100% 100%,0 60%)}
-  .thumb{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:clamp(20px,4.5vw,26px);padding:8px 16px;min-width:84px;transition:transform .15s ease;pointer-events:none}
-  .slider.drag .thumb{transform:translate(-50%,-50%) scale(1.05)}
-  .zone{position:absolute;bottom:100%;transform:translate(-50%,6px);font-size:15px;padding:7px 13px;pointer-events:none;transition:left .05s linear;box-shadow:none}
+  .knob{position:absolute;top:84px;width:24px;height:24px;border-radius:50%;background:var(--pink);border:3px solid #fff;
+    box-shadow:0 2px 8px rgba(192,48,111,.35);transform:translate(-50%,-50%);transition:transform .15s ease;pointer-events:none}
+  .slider.drag .knob{transform:translate(-50%,-50%) scale(1.15)}
+  .thumb{position:absolute;top:84px;transform:translate(-50%,calc(-100% - 20px));font-size:clamp(18px,4.2vw,22px);padding:6px 14px;min-width:72px;pointer-events:none}
+  .thumb::after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:var(--pink);transform:translateX(-50%) rotate(45deg);border-radius:2px}
+  .zone{position:absolute;top:84px;transform:translate(-50%,calc(-100% - 70px));font-size:14px;padding:5px 12px;pointer-events:none}
   .zone::before{box-shadow:0 2px 8px rgba(0,0,0,.06)}
-  .slider:focus-visible .thumb::before{outline:3px solid var(--ink);outline-offset:4px}
+  .slider:focus-visible .knob{outline:3px solid var(--ink);outline-offset:3px}
+  .scale{position:relative;margin:0 14px}
   .ends{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);font-weight:700;margin:0 0 6px}
   .ticks{display:flex;justify-content:space-between;margin:2px 0 0;font-size:12px;color:#a6a6aa;letter-spacing:.03em;text-transform:uppercase;font-weight:700}
   .ticks span{flex:1;text-align:center}
@@ -144,10 +149,13 @@
       <div class="black" id="black"></div>
       <div class="taper" id="taper"></div>
       <div class="sticker white zone" id="zone">Neutral</div>
+      <div class="knob" id="knob"></div>
       <div class="sticker pink thumb" id="thumb">50%</div>
     </div>
-    <div class="ends"><span id="endL">Low</span><span id="endR">High</span></div>
-    <div class="ticks" id="ticks"></div>
+    <div class="scale">
+      <div class="ends"><span id="endL">Unconfident</span><span id="endR">Confident</span></div>
+      <div class="ticks" id="ticks"></div>
+    </div>
     <div class="hint" id="hint">Move the slider to continue</div>
 
     <div class="row">
@@ -200,7 +208,7 @@ const SCALES = {
   main:{
     title:"How confident did the robot seem?",
     sub:"Drag the tag along the line.",
-    left:"Not confident", right:"Very confident",
+    left:"Unconfident", right:"Confident",
     zones:[[25,"Low"],[45,"Neutral"],[70,"Medium"],[101,"High"]],
     ticks:["Low","Neutral","Medium","High"]
   },
@@ -287,7 +295,7 @@ function zoneFor(val){
 function setValue(v){
   value=Math.max(0,Math.min(100,Math.round(v)));
   const p=value+"%";
-  $("thumb").style.left=p;$("zone").style.left=p;
+  $("thumb").style.left=p;$("knob").style.left=p;$("zone").style.left=p;
   $("thumb").textContent=value+"%";
   $("zone").textContent=zoneFor(value);
   const taperStart=Math.max(0,value-22);
