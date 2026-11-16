@@ -211,9 +211,8 @@ const SCALES = {
 };
 const KEY = "video-rating-sessions";
 
-/* ---------- storage: Google Sheet via Apps Script ---------- */
-// Paste your Apps Script web app URL here (see README).
-const SHEET_ENDPOINT = "";
+/* ---------- storage: Airtable via /api/submit (Vercel function) ---------- */
+const SHEET_ENDPOINT = "/api/submit";
 
 function sessionId(s){return (s.pid.replace(/[^A-Za-z0-9_\-]/g,"_")||"P")+"_"+(Date.parse(s.finishedAt)||Date.now())}
 function sessionRows(s){
@@ -222,7 +221,7 @@ function sessionRows(s){
     vid(v).type==="low"?"how-low":"confidence",s.ratings[v],zoneLabel(v,s.ratings[v]),s.comment||""]);
 }
 async function postOnce(s){
-  const r=await fetch(SHEET_ENDPOINT,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+  const r=await fetch(SHEET_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({sessionId:sessionId(s),rows:sessionRows(s)})});
   const j=await r.json();
   return j&&j.ok===true;
@@ -332,14 +331,14 @@ $("finishBtn").onclick=async()=>{
   btn.disabled=false;
   if(ok){
     $("doneSub").textContent=REMOTE?"Your answers are saved. You can close this tab.":"Your answers are saved.";
-    if(!REMOTE){$("saveStatus").textContent="✓ Added to the Google Sheet";$("saveStatus").style.color="var(--pink-dk)"}
+    if(!REMOTE){$("saveStatus").textContent="✓ Saved to Airtable";$("saveStatus").style.color="var(--pink-dk)"}
   }else{
     const code=encodeSession(session);
     $("answerCode").textContent=code;
     $("copyCode").onclick=()=>copy(code,"Copied. Send it to your researcher.");
     $("codeCard").style.display="block";
     $("doneSub").textContent=REMOTE?"We couldn't save automatically. Copy this code and paste it in the chat with your researcher."
-      :"Couldn't reach the Google Sheet. The session is kept on this device, and the code below is a backup.";
+      :"Couldn't reach Airtable. The session is kept on this device, and the code below is a backup.";
   }
   if(!REMOTE) renderSaved();
 };
@@ -389,7 +388,7 @@ $("importBtn").onclick=async()=>{
   const list=load();list.push(s);save(list);
   st.textContent="Adding…";
   const ok=await saveCloud(s);
-  st.textContent=ok?`✓ Added ${s.pid} to the Google Sheet.`:`Couldn't reach the Google Sheet. Saved ${s.pid} on this device only.`;
+  st.textContent=ok?`✓ Added ${s.pid} to Airtable.`:`Couldn't reach Airtable. Saved ${s.pid} on this device only.`;
   $("importBox").value="";
   renderSaved();
 };
@@ -400,7 +399,7 @@ function applyMode(){
     ["dbStatus","facImport","facSaved","resultCard","facDone"].forEach(id=>$(id).style.display="none");
     $("shuffle").checked=true; $("shuffle").parentElement.style.display="none";
   }else{
-    $("dbStatus").textContent=SHEET_ENDPOINT?"Responses go straight to your Google Sheet.":"No Google Sheet connected yet. Add SHEET_ENDPOINT in index.html. Until then, responses stay on this device.";
+    $("dbStatus").textContent="Responses save to Airtable as each session finishes.";
   }
   $("codeCard").style.display="none";
 }
