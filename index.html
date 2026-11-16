@@ -147,7 +147,6 @@
     <div class="slider" id="slider" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
       <div class="rail"></div>
       <div class="black" id="black"></div>
-      <div class="taper" id="taper"></div>
       <div class="sticker white zone" id="zone">Neutral</div>
       <div class="knob" id="knob"></div>
       <div class="sticker pink thumb" id="thumb">50%</div>
@@ -298,10 +297,8 @@ function setValue(v){
   $("thumb").style.left=p;$("knob").style.left=p;$("zone").style.left=p;
   $("thumb").textContent=value+"%";
   $("zone").textContent=zoneFor(value);
-  const taperStart=Math.max(0,value-22);
+  const taperStart=value;
   $("black").style.width=taperStart+"%";
-  $("taper").style.left=taperStart+"%";
-  $("taper").style.width=(value-taperStart)+"%";
   $("slider").setAttribute("aria-valuenow",value);
   $("slider").setAttribute("aria-valuetext",`${value}%, ${zoneFor(value)}`);
 }
