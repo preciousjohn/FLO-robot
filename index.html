@@ -136,9 +136,7 @@
   <!-- RATE -->
   <section class="screen" id="s-rate">
     <div class="vidwrap"><video id="video" controls playsinline preload="auto"></video></div>
-    <div class="vidnote" id="vidName">Video 1</div>
-    <h1 style="margin-top:34px" id="qTitle">How confident did the robot seem?</h1>
-    <p class="sub" id="qSub">Drag the tag along the line.</p>
+    <h1 style="margin-top:28px;text-align:center" id="qTitle">Video 1</h1>
 
     <div class="slider" id="slider" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
       <div class="rail"></div>
@@ -270,9 +268,8 @@ function vid(id){return VIDEOS.find(v=>v.id===id)}
 function loadVideo(){
   const v=vid(order[idx]), sc=SCALES[v.type];
   $("stepLabel").textContent=`Video ${idx+1} of ${order.length}`;
-  $("vidName").textContent=`Video ${idx+1} of ${order.length}`;
   const vEl=$("video"); if(vEl.getAttribute("src")!==v.src){vEl.pause();vEl.setAttribute("src",v.src);vEl.load();}
-  $("qTitle").textContent=sc.title;$("qSub").textContent=sc.sub;
+  $("qTitle").textContent=`Video ${idx+1}`;
   $("endL").textContent=sc.left;$("endR").textContent=sc.right;
   $("ticks").innerHTML=sc.ticks.map(t=>`<span>${t}</span>`).join("");
   setValue(ratings[v.id]??50);
