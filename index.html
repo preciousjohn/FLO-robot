@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Rating Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ececec;
+    --ink:#1d1d1f;
+    --muted:#8a8a8e;
+    --track:#dcdcdc;
+    --pink:#d9478f;
+    --pink-lt:#ec7fb3;
+    --pink-dk:#c0306f;
+    --white:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Lato,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{min-height:100vh;display:flex;justify-content:center;padding:28px 18px 60px}
+  .wrap{width:100%;max-width:720px}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;font-size:13px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+  .dots{display:flex;gap:6px}
+  .dots i{width:8px;height:8px;border-radius:50%;background:#d0d0d0;display:block;transition:.25s}
+  .dots i.on{background:var(--pink);transform:scale(1.25)}
+  .dots i.done{background:var(--ink)}
+  h1{font-weight:900;font-size:clamp(28px,6vw,44px);line-height:1.05;margin:0 0 12px;letter-spacing:-.01em}
+  p.sub{margin:0 0 8px;color:#55555a;font-size:17px;line-height:1.45}
+  .screen{display:none;animation:in .35s ease}
+  .screen.on{display:block}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ---------- sticker shapes ---------- */
+  .sticker{position:relative;display:inline-flex;align-items:center;justify-content:center;font-weight:700;white-space:nowrap;isolation:isolate}
+  .sticker::before{content:"";position:absolute;inset:0;border-radius:14px;z-index:-1;filter:url(#wobble)}
+  .sticker.white{color:var(--ink)}
+  .sticker.white::before{background:var(--white)}
+  .sticker.pink{color:#fff}
+  .sticker.pink::before{background:linear-gradient(160deg,var(--pink-lt),var(--pink) 45%,var(--pink-dk));box-shadow:0 14px 28px rgba(192,48,111,.28),0 4px 8px rgba(0,0,0,.12)}
+
+  /* ---------- slider ---------- */
+  .slider{position:relative;height:150px;margin:56px 6px 10px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;outline:none}
+  .rail{position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:6px;background:var(--track)}
+  .black{position:absolute;left:0;top:50%;height:6px;margin-top:-3px;border-radius:6px;background:var(--ink)}
+  .taper{position:absolute;top:50%;height:12px;margin-top:-6px;
+    background:linear-gradient(90deg,var(--pink-lt),var(--pink));
+    clip-path:polygon(0 40%,100% 0,100% 100%,0 60%)}
+  .thumb{position:absolute;top:50%;transform:translate(-50%,-50%) rotate(-2deg);font-size:clamp(26px,5.5vw,38px);padding:10px 16px;min-width:110px;transition:transform .15s ease;pointer-events:none}
+  .slider.drag .thumb{transform:translate(-50%,-56%) rotate(-4deg) scale(1.06)}
+  .zone{position:absolute;bottom:100%;transform:translate(-50%,6px) rotate(2deg);font-size:15px;padding:7px 13px;pointer-events:none;transition:left .05s linear;box-shadow:none}
+  .zone::before{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .slider:focus-visible .thumb::before{outline:3px solid var(--ink);outline-offset:4px}
+  .ends{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);font-weight:700;margin:0 0 6px}
+  .ticks{display:flex;justify-content:space-between;margin:2px 0 0;font-size:12px;color:#a6a6aa;letter-spacing:.03em;text-transform:uppercase;font-weight:700}
+  .ticks span{flex:1;text-align:center}
+  .ticks span:first-child{text-align:left}
+  .ticks span:last-child{text-align:right}
+  .hint{text-align:center;color:var(--muted);font-size:14px;margin-top:22px;min-height:20px}
+
+  /* ---------- controls ---------- */
+  .row{display:flex;gap:12px;margin-top:40px;flex-wrap:wrap}
+  button{font:inherit;font-weight:900;font-size:17px;border:0;cursor:pointer;padding:16px 26px;border-radius:999px;transition:transform .1s,opacity .2s}
+  button:active{transform:scale(.97)}
+  .go{background:var(--ink);color:#fff;flex:1}
+  .go:disabled{opacity:.25;cursor:not-allowed}
+  .ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px #cfcfcf}
+  .pinkbtn{background:var(--pink);color:#fff}
+  label.f{display:block;font-weight:700;font-size:14px;margin:26px 0 8px}
+  input[type=text],textarea{width:100%;font:inherit;font-size:17px;padding:14px 16px;border-radius:14px;border:2px solid #d6d6d6;background:#fff;outline:none}
+  input[type=text]:focus,textarea:focus{border-color:var(--ink)}
+  textarea{min-height:90px;resize:vertical}
+  .check{display:flex;align-items:center;gap:10px;margin-top:18px;font-size:16px;cursor:pointer}
+  .check input{width:20px;height:20px;accent-color:var(--pink)}
+  .card{background:#fff;border-radius:22px;padding:22px;margin-top:26px}
+  .vidbox{aspect-ratio:16/9;border-radius:18px;background:#e0e0e0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#8d8d92;font-weight:700;margin:26px 0 0;border:2px dashed #cfcfcf;font-size:15px}
+  .vidbox b{font-size:34px;font-weight:900;color:var(--ink)}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:11px 6px;border-bottom:1px solid #eee}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  td.n{font-weight:900}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:900;background:#f2f2f2}
+  .pill.low{background:#fbe3ef;color:var(--pink-dk)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,30px);opacity:0;background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-weight:700;transition:.25s;pointer-events:none}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  .fac{margin-top:30px;font-size:14px;color:var(--muted)}
+  .fac summary{cursor:pointer;font-weight:700}
+  pre{white-space:pre-wrap;word-break:break-all;font-size:12px;background:#f6f6f6;padding:12px;border-radius:12px;max-height:220px;overflow:auto}
+</style>
+</head>
+<body>
+
+<!-- wobbly sticker edge -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="wobble" x="-10%" y="-20%" width="120%" height="140%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="4" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<div class="wrap">
+  <div class="top"><span id="stepLabel">Setup</span><div class="dots" id="dots"></div></div>
+
+  <!-- SETUP (facilitator) -->
+  <section class="screen on" id="s-setup">
+    <h1>Video rating study</h1>
+    <p class="sub" id="setupSub">Facilitator setup. Enter the participant ID, then start.</p>
+    <p class="sub" id="dbStatus" style="font-size:14px;color:var(--muted)"></p>
+    <label class="f" for="pid">Participant ID</label>
+    <input type="text" id="pid" placeholder="e.g. P07" autocomplete="off">
+    <label class="check"><input type="checkbox" id="shuffle"> Randomize video order</label>
+    <div class="row"><button class="go" id="startBtn" disabled>Start session</button></div>
+
+    <details class="fac" id="facImport">
+      <summary>Add a remote participant's answers</summary>
+      <p>Paste the answer code a remote participant sent you.</p>
+      <textarea id="importBox" placeholder="VRS1:…"></textarea>
+      <div class="row" style="margin-top:10px"><button class="pinkbtn" id="importBtn">Add answers</button></div>
+      <p id="importStatus" style="font-weight:700;color:var(--ink)"></p>
+    </details>
+    <details class="fac" id="facSaved">
+      <summary>Sessions saved on this device</summary>
+      <div id="savedWrap"></div>
+    </details>
+  </section>
+
+  <!-- INTRO (participant) -->
+  <section class="screen" id="s-intro">
+    <h1>You'll watch 5 short robot videos.</h1>
+    <p class="sub">After each one, drag the slider to show how confident the robot seemed. There are no right answers. Go with your gut.</p>
+    <div class="row"><button class="go" id="introBtn">Let's go</button></div>
+  </section>
+
+  <!-- RATE -->
+  <section class="screen" id="s-rate">
+    <div class="vidbox" id="vidbox"><span>Now watch</span><b id="vidName">Video 1</b><span>then rate below</span></div>
+    <h1 style="margin-top:34px" id="qTitle">How confident did the robot seem?</h1>
+    <p class="sub" id="qSub">Drag the tag along the line.</p>
+
+    <div class="slider" id="slider" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+      <div class="rail"></div>
+      <div class="black" id="black"></div>
+      <div class="taper" id="taper"></div>
+      <div class="sticker white zone" id="zone">Neutral</div>
+      <div class="sticker pink thumb" id="thumb">50%</div>
+    </div>
+    <div class="ends"><span id="endL">Low</span><span id="endR">High</span></div>
+    <div class="ticks" id="ticks"></div>
+    <div class="hint" id="hint">Move the slider to continue</div>
+
+    <div class="row">
+      <button class="ghost" id="backBtn">Back</button>
+      <button class="go" id="nextBtn" disabled>Next</button>
+    </div>
+  </section>
+
+  <!-- COMMENT -->
+  <section class="screen" id="s-comment">
+    <h1>Anything stand out?</h1>
+    <p class="sub">Optional. What made a robot seem more or less confident to you?</p>
+    <textarea id="comment" placeholder="Type here…"></textarea>
+    <div class="row"><button class="go" id="finishBtn">Finish</button></div>
+  </section>
+
+  <!-- DONE -->
+  <section class="screen" id="s-done">
+    <h1>Thank you!</h1>
+    <p class="sub" id="doneSub">Your answers are in.</p>
+    <p class="sub" id="saveStatus" style="font-size:14px;font-weight:700"></p>
+    <div class="card" id="codeCard">
+      <p style="margin:0 0 10px;font-weight:700">Your answer code</p>
+      <pre id="answerCode" style="margin:0"></pre>
+      <div class="row" style="margin-top:14px"><button class="pinkbtn" id="copyCode">Copy answer code</button></div>
+    </div>
+    <div class="card" id="resultCard">
+      <table id="resultTable"></table>
+    </div>
+    <div class="row" id="facDone">
+      <button class="ghost" id="copyBtn">Copy CSV</button>
+      <button class="ghost" id="newBtn">New participant</button>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- study config ---------- */
+const VIDEOS = [
+  {id:"high",    cond:"High",    type:"main"},
+  {id:"medium",  cond:"Medium",  type:"main"},
+  {id:"neutral", cond:"Neutral", type:"main"},
+  {id:"low_a",   cond:"Low A",   type:"low"},
+  {id:"low_b",   cond:"Low B",   type:"low"},
+];
+const SCALES = {
+  main:{
+    title:"How confident did the robot seem?",
+    sub:"Drag the tag along the line.",
+    left:"Not confident", right:"Very confident",
+    zones:[[25,"Low"],[45,"Neutral"],[70,"Medium"],[101,"High"]],
+    ticks:["Low","Neutral","Medium","High"]
+  },
+  low:{
+    title:"How unsure did the robot seem?",
+    sub:"This robot seemed low on confidence. How low? Drag the tag.",
+    left:"A little unsure", right:"Extremely unsure",
+    zones:[[25,"Slightly low"],[50,"Somewhat low"],[75,"Very low"],[101,"Extremely low"]],
+    ticks:["Slightly","Somewhat","Very","Extremely"]
+  }
+};
+const KEY = "video-rating-sessions";
+
+/* ---------- storage: Google Sheet via Apps Script ---------- */
+// Paste your Apps Script web app URL here (see README).
+const SHEET_ENDPOINT = "";
+
+function sessionId(s){return (s.pid.replace(/[^A-Za-z0-9_\-]/g,"_")||"P")+"_"+(Date.parse(s.finishedAt)||Date.now())}
+function sessionRows(s){
+  const id=sessionId(s);
+  return s.order.filter(vid).map((v,i)=>[id,s.pid,s.mode||"",s.startedAt,s.finishedAt,i+1,vid(v).cond,
+    vid(v).type==="low"?"how-low":"confidence",s.ratings[v],zoneLabel(v,s.ratings[v]),s.comment||""]);
+}
+async function postOnce(s){
+  const r=await fetch(SHEET_ENDPOINT,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({sessionId:sessionId(s),rows:sessionRows(s)})});
+  const j=await r.json();
+  return j&&j.ok===true;
+}
+async function saveCloud(s){
+  if(!SHEET_ENDPOINT) return false;
+  try{ return await postOnce(s); }
+  catch(e){
+    await new Promise(r=>setTimeout(r,1000+Math.random()*1000));
+    try{ return await postOnce(s); }catch(_){ return false; }
+  }
+}
+let cloudSessions=null;
+
+/* ---------- state ---------- */
+let order=[], idx=0, ratings={}, touched={}, pid="", value=50, startedAt=null;
+
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id));window.scrollTo(0,0)}
+function toast(t){const el=$("toast");el.textContent=t;el.classList.add("on");setTimeout(()=>el.classList.remove("on"),1800)}
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){return[]}}
+function save(list){try{localStorage.setItem(KEY,JSON.stringify(list))}catch(e){}}
+
+/* ---------- setup ---------- */
+$("pid").addEventListener("input",e=>{$("startBtn").disabled=!e.target.value.trim()});
+$("startBtn").onclick=()=>{
+  pid=$("pid").value.trim();
+  order=VIDEOS.map(v=>v.id);
+  if($("shuffle").checked){for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}}
+  idx=0;ratings={};touched={};startedAt=new Date().toISOString();$("comment").value="";
+  renderDots();$("stepLabel").textContent="Intro";show("s-intro");
+};
+$("introBtn").onclick=()=>{loadVideo();show("s-rate")};
+
+/* ---------- dots ---------- */
+function renderDots(){
+  $("dots").innerHTML=VIDEOS.map((_,i)=>`<i class="${i<idx?'done':i===idx?'on':''}"></i>`).join("");
+}
+
+/* ---------- rating screen ---------- */
+function vid(id){return VIDEOS.find(v=>v.id===id)}
+function loadVideo(){
+  const v=vid(order[idx]), sc=SCALES[v.type];
+  $("stepLabel").textContent=`Video ${idx+1} of ${order.length}`;
+  $("vidName").textContent=`Video ${idx+1}`;
+  $("qTitle").textContent=sc.title;$("qSub").textContent=sc.sub;
+  $("endL").textContent=sc.left;$("endR").textContent=sc.right;
+  $("ticks").innerHTML=sc.ticks.map(t=>`<span>${t}</span>`).join("");
+  setValue(ratings[v.id]??50);
+  $("nextBtn").disabled=!touched[v.id];
+  $("hint").textContent=touched[v.id]?"":"Move the slider to continue";
+  $("nextBtn").textContent=idx===order.length-1?"Done rating":"Next";
+  $("backBtn").style.visibility=idx===0?"hidden":"visible";
+  renderDots();
+}
+function zoneFor(val){
+  const sc=SCALES[vid(order[idx]).type];
+  return sc.zones.find(z=>val<z[0])[1];
+}
+function setValue(v){
+  value=Math.max(0,Math.min(100,Math.round(v)));
+  const p=value+"%";
+  $("thumb").style.left=p;$("zone").style.left=p;
+  $("thumb").textContent=value+"%";
+  $("zone").textContent=zoneFor(value);
+  const taperStart=Math.max(0,value-22);
+  $("black").style.width=taperStart+"%";
+  $("taper").style.left=taperStart+"%";
+  $("taper").style.width=(value-taperStart)+"%";
+  $("slider").setAttribute("aria-valuenow",value);
+  $("slider").setAttribute("aria-valuetext",`${value}%, ${zoneFor(value)}`);
+}
+function commit(){
+  const id=order[idx];ratings[id]=value;
+  if(!touched[id]){touched[id]=true;$("nextBtn").disabled=false;$("hint").textContent=""}
+}
+
+const slider=$("slider");
+let dragging=false;
+function fromEvent(e){const r=slider.getBoundingClientRect();return (e.clientX-r.left)/r.width*100}
+slider.addEventListener("pointerdown",e=>{dragging=true;slider.classList.add("drag");slider.setPointerCapture(e.pointerId);setValue(fromEvent(e));commit()});
+slider.addEventListener("pointermove",e=>{if(dragging){setValue(fromEvent(e));commit()}});
+const end=()=>{dragging=false;slider.classList.remove("drag")};
+slider.addEventListener("pointerup",end);slider.addEventListener("pointercancel",end);
+slider.addEventListener("keydown",e=>{
+  const step=e.shiftKey?10:1;
+  if(["ArrowRight","ArrowUp"].includes(e.key)){setValue(value+step);commit();e.preventDefault()}
+  if(["ArrowLeft","ArrowDown"].includes(e.key)){setValue(value-step);commit();e.preventDefault()}
+});
+
+$("nextBtn").onclick=()=>{
+  if(idx<order.length-1){idx++;loadVideo()}
+  else{idx=order.length;renderDots();$("stepLabel").textContent="Last step";show("s-comment")}
+};
+$("backBtn").onclick=()=>{if(idx>0){idx--;loadVideo()}};
+
+/* ---------- finish ---------- */
+function zoneLabel(id,val){const sc=SCALES[vid(id).type];return sc.zones.find(z=>val<z[0])[1]}
+$("finishBtn").onclick=async()=>{
+  const btn=$("finishBtn"); if(btn.disabled) return; btn.disabled=true;
+  const session={pid,startedAt,finishedAt:new Date().toISOString(),order:[...order],ratings:{...ratings},comment:$("comment").value.trim(),mode:REMOTE?"remote":"in-person"};
+  const list=load();list.push(session);save(list);
+  renderResults(session);
+  $("doneSub").textContent="Saving your answers…";$("saveStatus").textContent="";$("codeCard").style.display="none";
+  $("stepLabel").textContent="Complete";show("s-done");
+  const ok=await saveCloud(session);
+  btn.disabled=false;
+  if(ok){
+    $("doneSub").textContent=REMOTE?"Your answers are saved. You can close this tab.":"Your answers are saved.";
+    if(!REMOTE){$("saveStatus").textContent="✓ Added to the Google Sheet";$("saveStatus").style.color="var(--pink-dk)"}
+  }else{
+    const code=encodeSession(session);
+    $("answerCode").textContent=code;
+    $("copyCode").onclick=()=>copy(code,"Copied. Send it to your researcher.");
+    $("codeCard").style.display="block";
+    $("doneSub").textContent=REMOTE?"We couldn't save automatically. Copy this code and paste it in the chat with your researcher."
+      :"Couldn't reach the Google Sheet. The session is kept on this device, and the code below is a backup.";
+  }
+  if(!REMOTE) renderSaved();
+};
+function renderResults(s){
+  $("resultTable").innerHTML=`<tr><th>#</th><th>Condition</th><th>Rating</th><th>Zone</th></tr>`+
+    s.order.map((id,i)=>{const v=vid(id);return `<tr><td>${i+1}</td><td><span class="pill ${v.type==='low'?'low':''}">${v.cond}</span></td><td class="n">${s.ratings[id]}%</td><td>${zoneLabel(id,s.ratings[id])}</td></tr>`}).join("");
+  $("copyBtn").onclick=()=>copy(toCSV([s]));
+}
+const esc=t=>`"${String(t??"").replace(/"/g,'""')}"`;
+function toCSV(list){
+  const head=["participant","started","finished","position","condition","scale","rating","zone","comment"];
+  const rows=[head.join(",")];
+  list.forEach(s=>s.order.forEach((id,i)=>{
+    const v=vid(id); if(!v) return;
+    rows.push([esc(s.pid),s.startedAt,s.finishedAt,i+1,esc(v.cond),v.type==="low"?"how-low":"confidence",s.ratings[id],esc(zoneLabel(id,s.ratings[id])),esc(s.comment)].join(","));
+  }));
+  return rows.join("\n");
+}
+async function copy(text,msg="Copied. Paste into Sheets."){
+  try{await navigator.clipboard.writeText(text);toast(msg)}
+  catch(e){const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand("copy");toast(msg)}catch(_){toast("Copy blocked. Select the text and copy it.")}ta.remove()}
+}
+
+/* ---------- remote mode + answer codes ---------- */
+const REMOTE = location.hash!=="#facilitator";
+function encodeSession(s){
+  return "VRS1:"+btoa(unescape(encodeURIComponent(JSON.stringify(s))));
+}
+function decodeSession(code){
+  const raw=code.trim().replace(/\s+/g,"");
+  if(!raw.startsWith("VRS1:")) throw new Error("That doesn't look like an answer code.");
+  const s=JSON.parse(decodeURIComponent(escape(atob(raw.slice(5)))));
+  if(typeof s.pid!=="string"||!Array.isArray(s.order)||typeof s.ratings!=="object") throw new Error("This code is incomplete.");
+  const ids=VIDEOS.map(v=>v.id);
+  s.order=s.order.filter(id=>ids.includes(id));
+  const clean={};
+  s.order.forEach(id=>{const r=Number(s.ratings[id]);if(Number.isFinite(r))clean[id]=Math.max(0,Math.min(100,Math.round(r)))});
+  if(s.order.length!==VIDEOS.length||Object.keys(clean).length!==VIDEOS.length) throw new Error("This code is missing ratings.");
+  return {pid:s.pid.slice(0,60),startedAt:String(s.startedAt||""),finishedAt:String(s.finishedAt||new Date().toISOString()),
+    order:s.order,ratings:clean,comment:String(s.comment||"").slice(0,4000),mode:"remote"};
+}
+$("importBtn").onclick=async()=>{
+  const st=$("importStatus");
+  let s;
+  try{ s=decodeSession($("importBox").value); }catch(e){ st.textContent=e.message||"Couldn't read that code."; return; }
+  const list=load();list.push(s);save(list);
+  st.textContent="Adding…";
+  const ok=await saveCloud(s);
+  st.textContent=ok?`✓ Added ${s.pid} to the Google Sheet.`:`Couldn't reach the Google Sheet. Saved ${s.pid} on this device only.`;
+  $("importBox").value="";
+  renderSaved();
+};
+function applyMode(){
+  if(REMOTE){
+    $("stepLabel").textContent="Welcome";
+    $("setupSub").textContent="Enter the participant ID your researcher gave you, then start.";
+    ["dbStatus","facImport","facSaved","resultCard","facDone"].forEach(id=>$(id).style.display="none");
+    $("shuffle").checked=true; $("shuffle").parentElement.style.display="none";
+  }else{
+    $("dbStatus").textContent=SHEET_ENDPOINT?"Responses go straight to your Google Sheet.":"No Google Sheet connected yet. Add SHEET_ENDPOINT in index.html. Until then, responses stay on this device.";
+  }
+  $("codeCard").style.display="none";
+}
+applyMode();
+$("newBtn").onclick=()=>{$("pid").value="";$("startBtn").disabled=true;idx=0;renderDots();$("stepLabel").textContent="Setup";renderSaved();show("s-setup")};
+
+/* ---------- saved sessions ---------- */
+function renderSaved(){
+  const list=load().filter(s=>s&&s.order&&s.ratings);
+  if(!list.length){$("savedWrap").innerHTML="<p>No sessions yet.</p>";return}
+  $("savedWrap").innerHTML=`<p>${list.length} session${list.length>1?"s":""} on this device: ${list.map(s=>esc(s.pid).slice(1,-1).replace(/</g,"&lt;")).join(", ")}</p>
+    <div class="row" style="margin-top:10px"><button class="pinkbtn" id="copyAll">Copy CSV</button><button class="ghost" id="clearAll">Clear</button></div>
+    <pre id="csvAll"></pre>`;
+  $("csvAll").textContent=toCSV(list);
+  $("copyAll").onclick=()=>copy(toCSV(list));
+  let armed=false;
+  $("clearAll").onclick=e=>{
+    if(!armed){armed=true;e.target.textContent="Tap again to delete";return}
+    save([]);renderSaved();toast("Cleared");
+  };
+}
+renderDots();renderSaved();
+</script>
+</body>
+</html>
