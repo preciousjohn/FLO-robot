@@ -16,12 +16,7 @@ The videos play in a random order for each person, and they're labeled only Vide
 
 ## The videos
 
-The 5 videos cover a range of robot reactions:
-
-- High confidence
-- Medium confidence
-- Neutral
-- Low confidence (two versions with different reactions)
+The 5 videos show the robot reacting in different ways. Details stay with the research team until data collection is done.
 
 ## Sessions
 
