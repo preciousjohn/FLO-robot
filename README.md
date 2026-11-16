@@ -1,49 +1,32 @@
-# FLO Robot: video rating study
+# FLO Robot: How Confident Does a Robot Seem?
 
-A single-page rating tool for the robot video study. Participants watch 5 videos and rate each one on a slider. Each finished session is saved to Airtable through a small Vercel function (`api/submit.js`), so the Airtable token never reaches the browser.
+A user study on how people read confidence in a robot's behavior.
 
-## Links
+## The question
 
-- **Participants:** `https://<your-vercel-domain>/`
-- **Facilitator:** `https://<your-vercel-domain>/#facilitator`. Shows the video-order toggle, sessions saved on this device, and a box for pasting backup answer codes.
+When a robot does a task, people judge it by more than whether it succeeds. They also read how it moves and reacts. This study asks how confident a robot seems to people, and how its reactions shape that judgment.
 
-## 1. Set up Airtable
+## What participants do
 
-1. Create a base, for example "FLO Robot", with a table named **Responses**.
-2. Add these fields. Names must match exactly.
+Each participant watches 5 short videos of the FLO robot. In every video the robot does the same task: identifying an item. Only its reaction changes.
 
-   | Field | Type |
-   |---|---|
-   | session_id | Single line text (make it the primary field) |
-   | participant | Single line text |
-   | mode | Single line text |
-   | started | Single line text |
-   | finished | Single line text |
-   | position | Number |
-   | condition | Single line text |
-   | scale | Single line text |
-   | rating | Number |
-   | zone | Single line text |
-   | comment | Long text |
+After each video, participants rate how confident the robot seemed on a slider from low to high. At the end, they can leave an optional comment about what stood out.
 
-3. Create a personal access token at airtable.com/create/tokens.
-   - Scopes: `data.records:read` and `data.records:write`
-   - Access: only this base
-4. Copy the base ID from the base URL. It starts with `app`.
+The videos play in a random order for each person, and they're labeled only Video 1 to Video 5. Participants aren't told what each video shows.
 
-## 2. Deploy on Vercel
+## The videos
 
-1. vercel.com → **Add New → Project** → import `preciousjohn/FLO-robot`. Framework preset: **Other**. Leave build settings empty.
-2. Before deploying, open **Environment Variables** and add:
-   - `AIRTABLE_TOKEN`: your token
-   - `AIRTABLE_BASE`: your base ID (`app…`)
-   - `AIRTABLE_TABLE`: `Responses`
-3. Click **Deploy**. Every push to `main` redeploys the site. If you add or change the variables later, redeploy so they take effect.
+The 5 videos cover a range of robot reactions:
 
-Each session adds one record per video. If the same session is sent twice, the second copy is skipped.
+- High confidence
+- Medium confidence
+- Neutral
+- Low confidence (two versions with different reactions)
 
-If a save fails, the participant sees an answer code. They paste it into the chat. You paste it into **Add a remote participant's answers** on the facilitator link, and it goes to Airtable.
+## Sessions
 
-## Change the study
+The study runs in person and remotely. Each participant gets an ID from the research team, and their ratings are saved when they finish.
 
-The videos and scale wording are at the top of the `<script>` in `index.html`, in `VIDEOS` and `SCALES`.
+## Take part
+
+Participants: https://flo-robot.vercel.app
