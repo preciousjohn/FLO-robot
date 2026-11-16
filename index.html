@@ -74,8 +74,9 @@
   .check{display:flex;align-items:center;gap:10px;margin-top:18px;font-size:16px;cursor:pointer}
   .check input{width:20px;height:20px;accent-color:var(--pink)}
   .card{background:#fff;border-radius:22px;padding:22px;margin-top:26px}
-  .vidbox{aspect-ratio:16/9;border-radius:18px;background:#e0e0e0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#8d8d92;font-weight:700;margin:26px 0 0;border:2px dashed #cfcfcf;font-size:15px}
-  .vidbox b{font-size:34px;font-weight:900;color:var(--ink)}
+  .vidwrap{margin:26px auto 0;max-width:340px;border-radius:22px;overflow:hidden;background:#111;box-shadow:0 14px 34px rgba(0,0,0,.12)}
+  .vidwrap video{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;background:#111}
+  .vidnote{text-align:center;color:var(--muted);font-size:14px;font-weight:700;margin-top:10px}
   table{width:100%;border-collapse:collapse;font-size:15px}
   th,td{text-align:left;padding:11px 6px;border-bottom:1px solid #eee}
   th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
@@ -109,7 +110,7 @@
     <p class="sub" id="dbStatus" style="font-size:14px;color:var(--muted)"></p>
     <label class="f" for="pid">Participant ID</label>
     <input type="text" id="pid" placeholder="e.g. P07" autocomplete="off">
-    <label class="check"><input type="checkbox" id="shuffle"> Randomize video order</label>
+    <label class="check"><input type="checkbox" id="shuffle" checked> Randomize video order</label>
     <div class="row"><button class="go" id="startBtn" disabled>Start session</button></div>
 
     <details class="fac" id="facImport">
@@ -127,14 +128,15 @@
 
   <!-- INTRO (participant) -->
   <section class="screen" id="s-intro">
-    <h1>You'll watch 5 short robot videos.</h1>
+    <h1>You'll watch <span id="vidCount">5</span> short robot videos.</h1>
     <p class="sub">After each one, drag the slider to show how confident the robot seemed. There are no right answers. Go with your gut.</p>
     <div class="row"><button class="go" id="introBtn">Let's go</button></div>
   </section>
 
   <!-- RATE -->
   <section class="screen" id="s-rate">
-    <div class="vidbox" id="vidbox"><span>Now watch</span><b id="vidName">Video 1</b><span>then rate below</span></div>
+    <div class="vidwrap"><video id="video" controls playsinline preload="auto"></video></div>
+    <div class="vidnote" id="vidName">Video 1</div>
     <h1 style="margin-top:34px" id="qTitle">How confident did the robot seem?</h1>
     <p class="sub" id="qSub">Drag the tag along the line.</p>
 
@@ -187,12 +189,14 @@
 <script>
 /* ---------- study config ---------- */
 const VIDEOS = [
-  {id:"high",    cond:"High",    type:"main"},
-  {id:"medium",  cond:"Medium",  type:"main"},
-  {id:"neutral", cond:"Neutral", type:"main"},
-  {id:"low_a",   cond:"Low A",   type:"low"},
-  {id:"low_b",   cond:"Low B",   type:"low"},
-];
+  // Files use neutral names so participants can't tell the condition.
+  {id:"high",    cond:"High",    type:"main", src:"videos/v4.mp4"},
+  {id:"medium",  cond:"Medium",  type:"main", src:"videos/v2.mp4"},
+  {id:"neutral", cond:"Neutral", type:"main", src:"videos/v1.mp4"},
+  {id:"low_a",   cond:"Low A",   type:"low",  src:"videos/v3.mp4"},
+  // Second low-confidence video: add its file, set src, and it joins the study.
+  {id:"low_b",   cond:"Low B",   type:"low",  src:""},
+].filter(v=>v.src);
 const SCALES = {
   main:{
     title:"How confident did the robot seem?",
@@ -203,7 +207,7 @@ const SCALES = {
   },
   low:{
     title:"How unsure did the robot seem?",
-    sub:"This robot seemed low on confidence. How low? Drag the tag.",
+    sub:"Drag the tag along the line.",
     left:"A little unsure", right:"Extremely unsure",
     zones:[[25,"Slightly low"],[50,"Somewhat low"],[75,"Very low"],[101,"Extremely low"]],
     ticks:["Slightly","Somewhat","Very","Extremely"]
@@ -266,7 +270,8 @@ function vid(id){return VIDEOS.find(v=>v.id===id)}
 function loadVideo(){
   const v=vid(order[idx]), sc=SCALES[v.type];
   $("stepLabel").textContent=`Video ${idx+1} of ${order.length}`;
-  $("vidName").textContent=`Video ${idx+1}`;
+  $("vidName").textContent=`Video ${idx+1} of ${order.length}`;
+  const vEl=$("video"); if(vEl.getAttribute("src")!==v.src){vEl.pause();vEl.setAttribute("src",v.src);vEl.load();}
   $("qTitle").textContent=sc.title;$("qSub").textContent=sc.sub;
   $("endL").textContent=sc.left;$("endR").textContent=sc.right;
   $("ticks").innerHTML=sc.ticks.map(t=>`<span>${t}</span>`).join("");
@@ -314,7 +319,7 @@ slider.addEventListener("keydown",e=>{
 
 $("nextBtn").onclick=()=>{
   if(idx<order.length-1){idx++;loadVideo()}
-  else{idx=order.length;renderDots();$("stepLabel").textContent="Last step";show("s-comment")}
+  else{$("video").pause();idx=order.length;renderDots();$("stepLabel").textContent="Last step";show("s-comment")}
 };
 $("backBtn").onclick=()=>{if(idx>0){idx--;loadVideo()}};
 
@@ -421,6 +426,7 @@ function renderSaved(){
     save([]);renderSaved();toast("Cleared");
   };
 }
+$("vidCount").textContent=VIDEOS.length;
 renderDots();renderSaved();
 </script>
 </body>
