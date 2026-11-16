@@ -34,11 +34,11 @@
 
   /* ---------- sticker shapes ---------- */
   .sticker{position:relative;display:inline-flex;align-items:center;justify-content:center;font-weight:700;white-space:nowrap;isolation:isolate}
-  .sticker::before{content:"";position:absolute;inset:0;border-radius:14px;z-index:-1;filter:url(#wobble)}
+  .sticker::before{content:"";position:absolute;inset:0;border-radius:999px;z-index:-1}
   .sticker.white{color:var(--ink)}
   .sticker.white::before{background:var(--white)}
   .sticker.pink{color:#fff}
-  .sticker.pink::before{background:linear-gradient(160deg,var(--pink-lt),var(--pink) 45%,var(--pink-dk));box-shadow:0 14px 28px rgba(192,48,111,.28),0 4px 8px rgba(0,0,0,.12)}
+  .sticker.pink::before{background:var(--pink);box-shadow:0 4px 12px rgba(192,48,111,.22)}
 
   /* ---------- slider ---------- */
   .slider{position:relative;height:150px;margin:56px 6px 10px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;outline:none}
@@ -47,9 +47,9 @@
   .taper{position:absolute;top:50%;height:12px;margin-top:-6px;
     background:linear-gradient(90deg,var(--pink-lt),var(--pink));
     clip-path:polygon(0 40%,100% 0,100% 100%,0 60%)}
-  .thumb{position:absolute;top:50%;transform:translate(-50%,-50%) rotate(-2deg);font-size:clamp(26px,5.5vw,38px);padding:10px 16px;min-width:110px;transition:transform .15s ease;pointer-events:none}
-  .slider.drag .thumb{transform:translate(-50%,-56%) rotate(-4deg) scale(1.06)}
-  .zone{position:absolute;bottom:100%;transform:translate(-50%,6px) rotate(2deg);font-size:15px;padding:7px 13px;pointer-events:none;transition:left .05s linear;box-shadow:none}
+  .thumb{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:clamp(20px,4.5vw,26px);padding:8px 16px;min-width:84px;transition:transform .15s ease;pointer-events:none}
+  .slider.drag .thumb{transform:translate(-50%,-50%) scale(1.05)}
+  .zone{position:absolute;bottom:100%;transform:translate(-50%,6px);font-size:15px;padding:7px 13px;pointer-events:none;transition:left .05s linear;box-shadow:none}
   .zone::before{box-shadow:0 2px 8px rgba(0,0,0,.06)}
   .slider:focus-visible .thumb::before{outline:3px solid var(--ink);outline-offset:4px}
   .ends{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);font-weight:700;margin:0 0 6px}
@@ -397,7 +397,7 @@ $("importBtn").onclick=async()=>{
 function applyMode(){
   if(REMOTE){
     $("stepLabel").textContent="Welcome";
-    $("setupSub").textContent="Enter the participant ID your researcher gave you, then start.";
+    $("setupSub").textContent="Enter the participant ID.";
     ["dbStatus","facImport","facSaved","resultCard","facDone"].forEach(id=>$(id).style.display="none");
     $("shuffle").checked=true; $("shuffle").parentElement.style.display="none";
   }else{
